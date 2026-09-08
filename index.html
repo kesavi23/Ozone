@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Attendance & Leave</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="login-page" id="loginPage">
+    <div class="login-box">
+
+        <!-- COVER PANEL — decorative brand side -->
+        <div class="login-cover" id="loginCover">
+            <div class="cover-dots"></div>
+            <svg class="cover-lines" viewBox="0 0 360 480" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M-20,120 C60,90 90,180 170,150 C250,120 260,40 360,70" />
+                <path d="M-20,180 C70,150 100,240 180,210 C260,180 280,100 380,130" />
+                <path d="M40,480 C90,400 60,340 140,330 C220,320 210,420 300,400 C350,390 340,440 400,430" />
+                <path d="M80,480 C130,420 100,370 180,360 C260,350 250,440 340,420" />
+            </svg>
+
+            <div class="cover-copy">
+                <div class="cover-badge">
+                    <img class="login-logo" src="logo.jpg" alt="Ozone Publishing Services logo">
+                    <span>Ozone Publishing Services</span>
+                </div>
+                <h2>Welcome back!</h2>
+                <p>Sign in to keep your attendance and leave records up to date.</p>
+            </div>
+
+            <!-- interactive 3D book scene — tilts and opens as the cursor moves -->
+            <div class="book-scene" id="bookScene" aria-hidden="true">
+                <div class="book-shadow"></div>
+                <div class="stack-book stack-book--a"></div>
+                <div class="stack-book stack-book--b"></div>
+                <div class="open-book" id="openBook">
+                    <div class="open-book-page open-book-page--left"><div class="page-lines"></div></div>
+                    <div class="open-book-spine"></div>
+                    <div class="open-book-page open-book-page--right"><div class="page-lines"></div></div>
+                    <div class="open-book-sparkle"><span>✦</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE PANEL — the form side -->
+        <div class="login-panel">
+            <h1 id="loginTitle">Sign In</h1>
+            <p class="login-subtitle" id="loginSubtitle">Enter your credentials to continue.</p>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm" onsubmit="event.preventDefault(); doLogin();">
+                <div class="form-group form-group--icon">
+                    <label>Email</label>
+                    <span class="input-icon">👤</span>
+                    <input type="email" id="loginEmail" placeholder="Enter email" required>
+                </div>
+                <div class="form-group form-group--icon">
+                    <label>Password</label>
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="loginPassword" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="login-button">Sign In</button>
+                <p class="switch" id="firstTimeSetupLink" style="display:none;">First time setup? <a href="#" onclick="toggleAuth('register')">Create Admin Account</a></p>
+                <p class="hint-msg" id="noSelfSignupHint" style="display:none;">Accounts are created by your HR/Admin team. Ask them for your login credentials.</p>
+                <p class="switch"><a href="#" onclick="toggleAuth('forgot')">Forgot password?</a></p>
+            </form>
+
+            <!-- REGISTER FORM (bootstrap admin only — hidden once the organization has any accounts) -->
+            <form id="registerForm" onsubmit="event.preventDefault(); doRegister();" style="display: none;">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="Enter email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="regPassword" placeholder="Enter password (min 6 characters)" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" id="regCompany" placeholder="Enter company name">
+                </div>
+                <div class="form-group">
+                    <label>Security Question</label>
+                    <select id="regSecQuestion" required>
+                        <option value="" disabled selected>Choose a question for password recovery</option>
+                        <option value="What was your first pet's name?">What was your first pet's name?</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What city were you born in?">What city were you born in?</option>
+                        <option value="What was the name of your first school?">What was the name of your first school?</option>
+                        <option value="What is your favorite book's title?">What is your favorite book's title?</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Answer</label>
+                    <input type="text" id="regSecAnswer" placeholder="Your answer" required>
+                </div>
+                <button type="submit" class="login-button">Create Admin Account</button>
+                <p class="switch">Already setup? <a href="#" onclick="toggleAuth('login')">Sign In</a></p>
+            </form>
+
+            <!-- FORGOT PASSWORD FORM (self-service via security question) -->
+            <form id="forgotForm" onsubmit="event.preventDefault();" style="display: none;">
+                <div id="forgotStep1">
+                    <div class="form-group form-group--icon">
+                        <label>Email</label>
+                        <span class="input-icon">👤</span>
+                        <input type="email" id="forgotEmail" placeholder="Enter your account email" required>
+                    </div>
+                    <button type="button" class="login-button" onclick="findForgotAccount()">Find My Account</button>
+                </div>
+                <div id="forgotStep2" style="display:none;">
+                    <div class="form-group">
+                        <label>Security Question</label>
+                        <p id="forgotQuestionText" style="font-size:13px; font-weight:600; margin-top:4px;"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Answer</label>
+                        <input type="text" id="forgotAnswer" placeholder="Answer" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="forgotNewPassword" placeholder="New password (min 6 characters)" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="forgotConfirmPassword" placeholder="Confirm new password" minlength="6" required>
+                    </div>
+                    <button type="button" class="login-button" onclick="submitPasswordReset()">Reset Password</button>
+                </div>
+                <p class="switch">Remembered it? <a href="#" onclick="toggleAuth('login')">Back to Sign In</a></p>
+            </form>
+
+            <p id="authMsg" class="error-msg"></p>
+        </div>
+    </div>
+</div>
+
+<!-- BIOMETRIC SCAN MODAL -->
+<div class="modal-overlay" id="bioModal">
+    <div class="modal-box bio-modal">
+        <div class="bio-scanner">
+            <div class="bio-ring"></div>
+            <div class="bio-fingerprint" id="bioIcon">🫆</div>
+        </div>
+        <h3 id="bioTitle">Biometric Verification</h3>
+        <p id="bioSubtitle" class="bio-subtitle">Place your finger on the scanner…</p>
+        <p id="bioError" class="error-msg" style="display:none;"></p>
+    </div>
+</div>
+
+<!-- EDIT ACTIVITY MODAL -->
+<div class="modal-overlay" id="editActModal">
+    <div class="modal-box" style="width: 460px; max-width: 100%;">
+        <div class="modal-close" onclick="closeEditActModal()">✕</div>
+        <h3 style="margin-bottom: 15px;">Edit Task</h3>
+        <input type="hidden" id="editActId">
+        <div class="form-group">
+            <label>Task / Activity</label>
+            <textarea id="editActTask"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Project / Category</label>
+            <input type="text" id="editActCategory">
+        </div>
+        <div class="form-row" style="margin-bottom: 15px;">
+            <div>
+                <label>Start Time</label>
+                <input type="time" id="editActStart">
+            </div>
+            <div>
+                <label>End Time</label>
+                <input type="time" id="editActEnd">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Status</label>
+            <select id="editActStatus">
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Pending">Pending</option>
+                <option value="On Hold">On Hold</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Remarks</label>
+            <textarea id="editActRemarks"></textarea>
+        </div>
+        <p id="editActMsg" style="margin-bottom: 10px; font-size: 13px;"></p>
+        <button class="btn btn-primary" style="width:100%;" onclick="saveActivityEdit()">Save Changes</button>
+    </div>
+</div>
+
+<!-- EMPLOYEE DETAIL MODAL -->
+<div class="modal-overlay" id="empModal">
+    <div class="modal-box emp-modal">
+        <div class="modal-close" onclick="closeEmpModal()">✕</div>
+        <div id="empModalBody">Loading…</div>
+    </div>
+</div>
+
+<!-- APPLICATION -->
+<div class="app" id="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <img class="brand-icon" src="logo.jpg" alt="Company logo">
+            <div class="brand-name">Office Portal<span>Attendance & Leave</span></div>
+        </div>
+        <nav class="nav">
+            <div class="nav-label">Main</div>
+            <button class="nav-item active" data-page="dashboard" onclick="navTo('dashboard')">
+                <span class="nav-icon">▦</span> Dashboard
+            </button>
+            <button class="nav-item" data-page="attendance" onclick="navTo('attendance')">
+                <span class="nav-icon">📅</span> Attendance
+            </button>
+            <button class="nav-item" data-page="leave" onclick="navTo('leave')">
+                <span class="nav-icon">📝</span> Leave
+            </button>
+            <button class="nav-item" data-page="activities" onclick="navTo('activities')">
+                <span class="nav-icon">🗒️</span> Daily Activities
+            </button>
+            <button class="nav-item" data-page="profile" onclick="navTo('profile')">
+                <span class="nav-icon">👤</span> My Profile
+            </button>
+
+            <div class="admin-only" style="flex-direction: column;">
+                <div class="nav-label">Management</div>
+                <button class="nav-item" data-page="admin" onclick="navTo('admin')">
+                    <span class="nav-icon">🛡️</span> Admin
+                </button>
+            </div>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-mini" onclick="logout()">
+                <div class="avatar" id="miniAvatar">U</div>
+                <div>
+                    <strong id="miniName">User</strong>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="page-title">
+                <h2 id="topTitle">Dashboard</h2>
+                <p>Office Attendance Portal</p>
+            </div>
+            <div class="topbar-right">
+                <div class="notification-wrap" id="notifWrap">
+                    <button class="notification" id="notifBtn" onclick="toggleNotifDropdown(event)">🔔<span class="notification-dot" id="notifDot" style="display:none;"></span></button>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-dropdown-head">
+                            <span>Notifications</span>
+                            <button class="notif-clear-btn" id="notifClearBtn" onclick="clearAllNotifications()">Clear all</button>
+                        </div>
+                        <div class="notif-list" id="notifList">
+                            <p class="notif-empty">No new notifications.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="avatar" id="topAvatar">U</div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- DASHBOARD -->
+            <section class="page-section active" id="dashboard">
+                <div class="welcome-card">
+                    <div>
+                        <h1 id="welcomeText">Good morning 👋</h1>
+                        <p>Keep your attendance up to date.</p>
+                    </div>
+                    <div class="welcome-date" id="welcomeDate">...</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div><p>Days Present</p></div>
+                            <div class="stat-icon icon-green">✓</div>
+                        </div>
+                        <h3 id="statPresent">-</h3>
+                        <p>This Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div><p>Leave</p></div>
+                            <div class="stat-icon icon-yellow">📝</div>
+                        </div>
+                        <h3 id="statLeave">-</h3>
+                        <p>Days on Leave (approved)</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div><p>Casual Balance</p></div>
+                            <div class="stat-icon icon-blue">C</div>
+                        </div>
+                        <h3 id="statCasual">-</h3>
+                        <p>Remaining</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div><p>Sick Balance</p></div>
+                            <div class="stat-icon icon-purple">S</div>
+                        </div>
+                        <h3 id="statSick">-</h3>
+                        <p>Remaining</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Today's Attendance <span class="biometric-tag">🫆 Biometric</span></h3>
+                            <span class="badge badge-pending" id="todayStatusBadge">NOT CLOCKED IN</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="attendance-box">
+                                <div class="live-time" id="liveTime">00:00:00</div>
+                                <div class="live-date" id="liveDate">...</div>
+                                <div class="clock-buttons">
+                                    <button class="btn btn-green" id="clockInBtn" onclick="startBiometricAction('clock-in')">🫆 Clock In</button>
+                                    <button class="btn btn-red" id="clockOutBtn" onclick="startBiometricAction('clock-out')">🫆 Clock Out</button>
+                                </div>
+                                <div class="today-times">
+                                    <div class="time-box">
+                                        <span>Clock In</span>
+                                        <strong id="clockInDisplay">—</strong>
+                                    </div>
+                                    <div class="time-box">
+                                        <span>Clock Out</span>
+                                        <strong id="clockOutDisplay">—</strong>
+                                    </div>
+                                    <div class="time-box">
+                                        <span>Required Out</span>
+                                        <strong id="requiredOutDisplay">—</strong>
+                                    </div>
+                                    <div class="time-box">
+                                        <span>Shift</span>
+                                        <strong id="shiftDisplay">—</strong>
+                                    </div>
+                                    <div class="time-box">
+                                        <span>Work Hours</span>
+                                        <strong id="workHoursDisplay">—</strong>
+                                    </div>
+                                </div>
+
+                                <div class="break-panel">
+                                    <div class="break-panel-head">
+                                        <span>Breaks <span id="breakAllowanceText" class="break-allowance">(60 min allowed)</span></span>
+                                        <span id="breakTotalText">0 min used</span>
+                                    </div>
+                                    <div class="break-buttons" id="breakButtons">
+                                        <select id="breakTypeSelect">
+                                            <option value="lunch">Lunch Break</option>
+                                            <option value="evening">Evening Break</option>
+                                            <option value="other">Other Break</option>
+                                        </select>
+                                        <button class="btn btn-outline" id="breakStartBtn" onclick="startBiometricAction('break-start')">🫆 Start Break</button>
+                                        <button class="btn btn-outline" id="breakEndBtn" onclick="startBiometricAction('break-end')">🫆 End Break</button>
+                                    </div>
+                                    <div id="breakList" class="break-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Leaves</h3>
+                            <button class="btn btn-outline" onclick="navTo('leave')">View All</button>
+                        </div>
+                        <div class="card-body" id="recentLeavesList">
+                            <p style="font-size: 12px; color: var(--text-light);">No recent leaves.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ATTENDANCE -->
+            <section class="page-section" id="attendance">
+                <div class="section-title">
+                    <h2>My Attendance</h2>
+                    <p>View your monthly attendance calendar and history.</p>
+                </div>
+                <div class="card">
+                    <div class="calendar">
+                        <div class="calendar-head">
+                            <h3 id="calMonthTitle">Month Year</h3>
+                            <div class="calendar-controls">
+                                <button onclick="changeMonth(-1)">‹</button>
+                                <button onclick="changeMonth(1)">›</button>
+                            </div>
+                        </div>
+                        <div class="weekdays">
+                            <div class="weekday">SUN</div><div class="weekday">MON</div><div class="weekday">TUE</div><div class="weekday">WED</div><div class="weekday">THU</div><div class="weekday">FRI</div><div class="weekday">SAT</div>
+                        </div>
+                        <div class="days" id="calendarDays">
+                            <!-- JS populated -->
+                        </div>
+                        <div class="calendar-legend">
+                            <div class="legend"><span class="legend-dot legend-present"></span> Present</div>
+                            <div class="legend"><span class="legend-dot legend-leave"></span> Leave</div>
+                            <div class="legend"><span class="legend-dot legend-absent"></span> Absent</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Attendance History</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Shift</th><th>Breaks</th><th>Work Hrs</th><th>Status</th></tr></thead>
+                            <tbody id="attHistoryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LEAVE -->
+            <section class="page-section" id="leave">
+                <div class="section-title">
+                    <h2>Leave Management</h2>
+                    <p>Apply for leave and view your balances.</p>
+                </div>
+                
+                <div class="leave-layout">
+                    <div class="card">
+                        <div class="card-header"><h3>Apply Leave</h3></div>
+                        <div class="leave-form form-group" style="margin:0;">
+                            <label>Leave Type</label>
+                            <select id="leaveType" style="margin-bottom: 15px;">
+                                <option>Casual Leave</option>
+                                <option>Sick Leave</option>
+                            </select>
+                            
+                            <div class="form-row" style="margin-bottom: 15px;">
+                                <div>
+                                    <label>Start Date</label>
+                                    <input type="date" id="leaveStart">
+                                </div>
+                                <div>
+                                    <label>End Date</label>
+                                    <input type="date" id="leaveEnd">
+                                </div>
+                            </div>
+                            
+                            <label>Reason</label>
+                            <textarea id="leaveReason" placeholder="Briefly explain your reason..."></textarea>
+                            <p id="leaveMsg" style="margin-top: 10px; font-size: 13px;"></p>
+                            <button class="btn btn-primary" style="margin-top:15px; width:100%;" onclick="submitLeave()">Submit Application</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><h3>Leave History</h3></div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Type</th><th>Dates</th><th>Days</th><th>Status</th></tr></thead>
+                                <tbody id="leaveHistoryTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DAILY ACTIVITIES -->
+            <section class="page-section" id="activities">
+                <div class="section-title">
+                    <h2>Daily Activities</h2>
+                    <p>Log what you worked on today and review your activity history by date or month.</p>
+                </div>
+
+                <div class="leave-layout">
+                    <div class="card">
+                        <div class="card-header"><h3>Log a Task — Today</h3></div>
+                        <div class="leave-form form-group" style="margin:0;">
+                            <label>Task / Activity</label>
+                            <textarea id="actTask" placeholder="What did you work on?" style="margin-bottom: 15px;"></textarea>
+
+                            <label>Project / Category</label>
+                            <input type="text" id="actCategory" placeholder="e.g. Book Editing, Client XYZ" style="margin-bottom: 15px;">
+
+                            <div class="form-row" style="margin-bottom: 15px;">
+                                <div>
+                                    <label>Start Time</label>
+                                    <input type="time" id="actStart">
+                                </div>
+                                <div>
+                                    <label>End Time</label>
+                                    <input type="time" id="actEnd">
+                                </div>
+                            </div>
+
+                            <label>Status</label>
+                            <select id="actStatus" style="margin-bottom: 15px;">
+                                <option value="Completed">Completed</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Pending">Pending</option>
+                                <option value="On Hold">On Hold</option>
+                            </select>
+
+                            <label>Remarks</label>
+                            <textarea id="actRemarks" placeholder="Any notes (optional)..."></textarea>
+                            <p id="actMsg" style="margin-top: 10px; font-size: 13px;"></p>
+                            <button class="btn btn-primary" style="margin-top:15px; width:100%;" onclick="submitActivity()">Add Task</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><h3>Today's Tasks</h3></div>
+                        <div class="table-container">
+                            <table>
+                                <thead><tr><th>Task</th><th>Category</th><th>Time</th><th>Status</th><th>Remarks</th><th></th></tr></thead>
+                                <tbody id="todayActivitiesTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Activity History — By Date</h3>
+                    </div>
+                    <div class="card-body" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;">
+                            <label>Date</label>
+                            <input type="date" id="actHistoryDate">
+                        </div>
+                        <button class="btn btn-outline" onclick="loadActivityHistoryByDate()">View</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Task</th><th>Category</th><th>Time</th><th>Status</th><th>Remarks</th></tr></thead>
+                            <tbody id="actHistoryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Activity Summary — By Month</h3>
+                    </div>
+                    <div class="card-body" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;">
+                            <label>Month</label>
+                            <input type="month" id="actHistoryMonth">
+                        </div>
+                        <button class="btn btn-outline" onclick="loadActivityMonthSummary()">View</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Date</th><th>Tasks Logged</th><th>Completed</th><th>In Progress</th><th>Pending</th><th>On Hold</th></tr></thead>
+                            <tbody id="actMonthSummaryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROFILE -->
+            <section class="page-section" id="profile">
+                <div class="section-title">
+                    <h2>My Profile</h2>
+                    <p>Your account information.</p>
+                </div>
+                <div class="card">
+                    <div class="profile-card">
+                        <div class="profile-avatar" id="profAvatar">U</div>
+                        <div class="profile-info">
+                            <h2 id="profName">Name</h2>
+                            <p id="profEmail">Email</p>
+                            <p id="profRoleCompany">Role - Company</p>
+                            <p id="profRoleBadge" class="badge" style="margin-top: 10px;"></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADMIN -->
+            <section class="page-section" id="admin">
+                <div class="section-title">
+                    <h2>Admin Dashboard</h2>
+                    <p>Manage employees and leaves.</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Create Account (Admin Only)</h3>
+                        </div>
+                        <div class="card-body form-group" style="margin:0;">
+                            <label>Full Name</label>
+                            <input type="text" id="addName" style="margin-bottom:10px;" required>
+                            
+                            <label>Email</label>
+                            <input type="email" id="addEmail" style="margin-bottom:10px;" required>
+                            
+                            <label>Password</label>
+                            <input type="password" id="addPassword" style="margin-bottom:10px;" required>
+
+                            <label>Security Question</label>
+                            <select id="addSecQuestion" style="margin-bottom:10px;" required>
+                                <option value="" disabled selected>Choose a question for password recovery</option>
+                                <option value="What was your first pet's name?">What was your first pet's name?</option>
+                                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                                <option value="What city were you born in?">What city were you born in?</option>
+                                <option value="What was the name of your first school?">What was the name of your first school?</option>
+                                <option value="What is your favorite book's title?">What is your favorite book's title?</option>
+                            </select>
+
+                            <label>Answer</label>
+                            <input type="text" id="addSecAnswer" style="margin-bottom:10px;" placeholder="Share this with the employee along with their password" required>
+
+                            <p id="addMsg" style="margin-top: 10px; font-size: 13px;"></p>
+                            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="addEmployee()">Create Employee Account</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Employees Directory</h3>
+                        </div>
+                        <p style="padding: 0 20px; font-size: 12px; color: var(--text-light);">Click a row to view full employee details, attendance, and leave history.</p>
+                        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                            <table>
+                                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+                                <tbody id="adminUsersTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Pending Leave Requests</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Action</th></tr></thead>
+                            <tbody id="adminLeavesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Today's Biometric Attendance</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Employee</th><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Shift</th><th>Breaks</th><th>Work Hrs</th><th>Status</th></tr></thead>
+                            <tbody id="adminAttendanceTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Daily Activities — All Employees</h3>
+                    </div>
+                    <div class="card-body" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;">
+                            <label>Employee</label>
+                            <select id="actAdminEmployee" style="min-width:180px;">
+                                <option value="">All Employees</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>Date</label>
+                            <input type="date" id="actAdminDate">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>Month</label>
+                            <input type="month" id="actAdminMonth">
+                        </div>
+                        <button class="btn btn-outline" onclick="loadAdminActivities()">Filter</button>
+                        <button class="btn btn-outline" onclick="clearAdminActivityFilters()">Clear</button>
+                    </div>
+                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                        <table>
+                            <thead><tr><th>Employee</th><th>Date</th><th>Task</th><th>Category</th><th>Time</th><th>Status</th><th>Remarks</th></tr></thead>
+                            <tbody id="adminActivitiesTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Recent Activity (Audit Log)</h3>
+                    </div>
+                    <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                        <table>
+                            <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead>
+                            <tbody id="adminAuditTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script src="login-book.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

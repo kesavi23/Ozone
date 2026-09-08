@@ -1,0 +1,11 @@
+{
+  "name": "ozone-hrms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ozone Publishing Services - Attendance & Leave app",
+  "dependencies": {
+    "pg": "^8.11.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
